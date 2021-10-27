@@ -65,7 +65,7 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 
 	for len(remaining_actions) > 0 {
 		var header uint64
-		header, remaining_actions, _, err = bps_read_num(remaining_actions)
+		header, remaining_actions, err = bps_read_num(remaining_actions)
 		if err != nil {
 			err = fmt.Errorf("Read Action: %w", err)
 			return
@@ -90,7 +90,7 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 			var (
 				data uint64
 			)
-			data, remaining_actions, _, err = bps_read_num(remaining_actions)
+			data, remaining_actions, err = bps_read_num(remaining_actions)
 			if err != nil {
 				err = fmt.Errorf("Source copy data read: %w", err)
 				return
@@ -108,7 +108,7 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 			var (
 				data uint64
 			)
-			data, remaining_actions, _, err = bps_read_num(remaining_actions)
+			data, remaining_actions, err = bps_read_num(remaining_actions)
 			if err != nil {
 				err = fmt.Errorf("Target Copy Read %w", err)
 				return
@@ -154,10 +154,10 @@ func FromFile(patchfile *os.File) (BPSPatch, error) {
 	remaining := full_file[len(bps_header):]
 
 	// TODO: error handling
-	source_size, remaining, _, _ := bps_read_num(remaining)
+	source_size, remaining, _ := bps_read_num(remaining)
 
-	target_size, remaining, _, _ := bps_read_num(remaining)
-	metadata_size, remaining, _, _ := bps_read_num(remaining)
+	target_size, remaining, _ := bps_read_num(remaining)
+	metadata_size, remaining, _ := bps_read_num(remaining)
 	metadata, remaining := string(remaining[:metadata_size]), remaining[metadata_size:]
 
 	action_len := len(remaining) - 12
@@ -222,8 +222,9 @@ func bps_write_num(bytewriter io.ByteWriter, num uint64) error {
 }
 
 // Read a BPS serialized variable length encoded integer from the provided byte slice.
-func bps_read_num(stream []byte) (data uint64, remainder []byte, bytes_read int, err error) {
+func bps_read_num(stream []byte) (data uint64, remainder []byte, err error) {
 	var (
+		bytes_read int = 0
 		shift uint64 = 1
 	)
 
