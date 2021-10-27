@@ -11,14 +11,14 @@ import (
 )
 
 var (
-	BPS_HEADER = []byte("BPS1")
+	bps_header = []byte("BPS1")
 )
 
 const (
-	SourceRead = iota
-	TargetRead
-	SourceCopy
-	TargetCopy
+	sourceRead = iota
+	targetRead
+	sourceCopy
+	targetCopy
 )
 
 type BPSPatch struct {
@@ -72,16 +72,16 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 		length := (header >> 2) + 1
 
 		switch action_num {
-		case SourceRead:
+		case sourceRead:
 			// Copy length bytes from source file to target file, using the output offset as the index for both source and target
 			copy(target_data[output_offset:output_offset+length], source_data[output_offset:output_offset+length])
 			output_offset += length
-		case TargetRead:
+		case targetRead:
 			// copy length bytes from patch file to target file
 			copy(target_data[output_offset:output_offset+length], remaining_actions[:length])
 			output_offset += length
 			remaining_actions = remaining_actions[length:]
-		case SourceCopy:
+		case sourceCopy:
 			// copy length bytes from somewhere else in the source file.  Increment or decrement the source offset before copying
 			var (
 				data uint64
@@ -99,7 +99,7 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 			copy(target_data[output_offset:output_offset+length], source_data[source_offset:source_offset+length])
 			source_offset += length
 			output_offset += length
-		case TargetCopy:
+		case targetCopy:
 			// copy data from somewhere else in the target file.  Increment or decrement the target offset before copying
 			var (
 				data uint64
@@ -142,11 +142,11 @@ func FromFile(patchfile *os.File) (BPSPatch, error) {
 	full_file := make([]byte, filesize)
 	patchfile.Read(full_file)
 
-	if !bytes.Equal(full_file[:len(BPS_HEADER)], BPS_HEADER) {
+	if !bytes.Equal(full_file[:len(bps_header)], bps_header) {
 		return BPSPatch{}, errors.New("Magic Header Incorrect")
 	}
 
-	remaining := full_file[len(BPS_HEADER):]
+	remaining := full_file[len(bps_header):]
 
 	// TODO: error handling
 	source_size, remaining, _, _ := bps_read_num(remaining)
