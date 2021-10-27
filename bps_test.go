@@ -211,8 +211,12 @@ func TestEndToEndTrivial(t *testing.T) {
 }
 
 func TestEndToEndALTPPRBase(t *testing.T) {
-	patchfile, _ := os.Open("test/7f2e1606616492d7dfb589e8dfb70027.bps")
 	sourcefile, err := os.Open("test/Zelda.sfc")
+	if err != nil {
+		t.Skipf("Could not read test/Zelda.sfc.  Skipping this test")
+	}
+
+	patchfile, _ := os.Open("test/7f2e1606616492d7dfb589e8dfb70027.bps")
 
 	patch, err := FromFile(patchfile)
 
