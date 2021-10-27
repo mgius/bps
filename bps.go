@@ -140,8 +140,11 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 }
 
 // Read a BPS patch file, verifying the patch checksum
-func FromFile(patchfile *os.File) (BPSPatch, error) {
-	filestat, _ := patchfile.Stat()
+func FromFile(patchfile *os.File) (patch BPSPatch, err error) {
+	filestat, err := patchfile.Stat()
+	if err != nil {
+		err = fmt.Errorf("Error performing stat on patchfile: %w", err)
+	}
 	filesize := filestat.Size()
 
 	full_file := make([]byte, filesize)
@@ -154,10 +157,22 @@ func FromFile(patchfile *os.File) (BPSPatch, error) {
 	remaining := full_file[len(bps_header):]
 
 	// TODO: error handling
-	source_size, remaining, _ := bps_read_num(remaining)
+	source_size, remaining, err := bps_read_num(remaining)
+	if err != nil {
+		err = fmt.Errorf("Error reading source size: %w", err)
+		return
+	}
 
-	target_size, remaining, _ := bps_read_num(remaining)
-	metadata_size, remaining, _ := bps_read_num(remaining)
+	target_size, remaining, err := bps_read_num(remaining)
+	if err != nil {
+		err = fmt.Errorf("Error reading target size: %w", err)
+	}
+
+	metadata_size, remaining, err := bps_read_num(remaining)
+	if err != nil {
+		err = fmt.Errorf("Error reading metadata size: %w", err)
+	}
+
 	metadata, remaining := string(remaining[:metadata_size]), remaining[metadata_size:]
 
 	action_len := len(remaining) - 12
@@ -224,8 +239,8 @@ func bps_write_num(bytewriter io.ByteWriter, num uint64) error {
 // Read a BPS serialized variable length encoded integer from the provided byte slice.
 func bps_read_num(stream []byte) (data uint64, remainder []byte, err error) {
 	var (
-		bytes_read int = 0
-		shift uint64 = 1
+		bytes_read int    = 0
+		shift      uint64 = 1
 	)
 
 	for bytes_read < len(stream) {
