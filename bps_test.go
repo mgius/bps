@@ -51,7 +51,7 @@ func TestReadBPSFile(t *testing.T) {
 		PatchChecksum:  0xc18e4db1,
 	}
 
-	f, _ := os.Open("testpatch.bps")
+	f, _ := os.Open("test/testpatch.bps")
 	bps, _ := FromFile(f)
 
 	compare_bps(&expected_bps, &bps, t)
@@ -71,7 +71,7 @@ func TestReadALTTPRBPSFile(t *testing.T) {
 		Actions:        make([]byte, 126299),
 	}
 
-	f, _ := os.Open("7f2e1606616492d7dfb589e8dfb70027.bps")
+	f, _ := os.Open("test/7f2e1606616492d7dfb589e8dfb70027.bps")
 	bps, err := FromFile(f)
 	if err != nil {
 		t.Fatalf("%s", err)
@@ -190,9 +190,9 @@ func TestCanDecodeEncodedNumbers(t *testing.T) {
 }
 
 func TestEndToEndTrivial(t *testing.T) {
-	patchfile, _ := os.Open("testpatch.bps")
-	sourcefile, _ := os.Open("sourceFile")
-	expectedtargetdata, _ := os.ReadFile("targetFile")
+	patchfile, _ := os.Open("test/testpatch.bps")
+	sourcefile, _ := os.Open("test/sourceFile")
+	expectedtargetdata, _ := os.ReadFile("test/targetFile")
 
 	patch, err := FromFile(patchfile)
 	if err != nil {
@@ -211,8 +211,8 @@ func TestEndToEndTrivial(t *testing.T) {
 }
 
 func TestEndToEndALTPPRBase(t *testing.T) {
-	patchfile, _ := os.Open("7f2e1606616492d7dfb589e8dfb70027.bps")
-	sourcefile, _ := os.Open("Zelda.sfc")
+	patchfile, _ := os.Open("test/7f2e1606616492d7dfb589e8dfb70027.bps")
+	sourcefile, err := os.Open("test/Zelda.sfc")
 
 	patch, err := FromFile(patchfile)
 
