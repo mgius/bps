@@ -1,3 +1,4 @@
+// Go library for handling BPS patch files, as commonly used in romfile patching
 package bps
 
 import (
@@ -32,6 +33,9 @@ type BPSPatch struct {
 	PatchChecksum  uint32
 }
 
+// Apply a BPS patch file to the specified source file.  The checksum of the
+// source file and the returned bytes will be verified and an error returned if
+// either fails
 func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte, err error) {
 	// Read and validate source file
 	source_data := make([]byte, patch.SourceSize)
@@ -135,6 +139,7 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 
 }
 
+// Read a BPS patch file, verifying the patch checksum
 func FromFile(patchfile *os.File) (BPSPatch, error) {
 	filestat, _ := patchfile.Stat()
 	filesize := filestat.Size()
@@ -182,10 +187,10 @@ func FromFile(patchfile *os.File) (BPSPatch, error) {
 
 }
 
+// Serialize a uint64 into a BPS variable length encoded byte stream Should
+// probably switch to return bytes at some point?  Mostly this is used for test
+// cases ATM
 func bps_write_num(bytewriter io.ByteWriter, num uint64) error {
-	/* Serialize a uint64 into a BPS variable length encoded byte stream
-	Should probably switch to return bytes at some point?  Mostly this is used for test cases ATM
-	*/
 	for true {
 		// slice off the lowest 7 bits of num
 		x := byte(num & 0x7f)
@@ -216,10 +221,9 @@ func bps_write_num(bytewriter io.ByteWriter, num uint64) error {
 	return nil
 }
 
+// Read a BPS serialized variable length encoded integer from the provided byte slice.
 func bps_read_num(stream []byte) (data uint64, remainder []byte, bytes_read int, err error) {
-	// Read a BPS serialized variable length encoded integer from the provided byte slice.
 	var (
-		// data  uint64 = 0
 		shift uint64 = 1
 	)
 
