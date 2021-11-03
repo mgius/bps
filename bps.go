@@ -139,7 +139,6 @@ func (patch *BPSPatch) PatchSourceFile(sourcefile *os.File) (target_data []byte,
 
 }
 
-// Read a BPS patch file, verifying the patch checksum
 func FromFile(patchfile *os.File) (patch BPSPatch, err error) {
 	filestat, err := patchfile.Stat()
 	if err != nil {
@@ -150,6 +149,11 @@ func FromFile(patchfile *os.File) (patch BPSPatch, err error) {
 	full_file := make([]byte, filesize)
 	patchfile.Read(full_file)
 
+	return FromBytes(full_file)
+}
+
+// Read a BPS patch file, verifying the patch checksum
+func FromBytes(full_file []byte) (patch BPSPatch, err error) {
 	if !bytes.Equal(full_file[:len(bps_header)], bps_header) {
 		return BPSPatch{}, errors.New("Magic Header Incorrect")
 	}
@@ -182,8 +186,6 @@ func FromFile(patchfile *os.File) (patch BPSPatch, err error) {
 	target_checksum := binary.LittleEndian.Uint32(remaining[4:8])
 	patch_checksum := binary.LittleEndian.Uint32(remaining[8:12])
 
-	// TODO: validate patch_checksum
-	// patch checksum is run over the whole file minus the patch checksum
 	calculated_patch_checksum := crc32.ChecksumIEEE(full_file[:len(full_file)-4])
 	if calculated_patch_checksum != patch_checksum {
 		return BPSPatch{}, errors.New("Patch checksum did not verify")
